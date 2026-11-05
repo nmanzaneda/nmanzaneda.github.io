@@ -84,6 +84,13 @@ nav{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1p
   padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));justify-content:center;gap:4px}
 nav button{font:inherit;font-weight:600;flex:1;max-width:200px;border:0;background:transparent;color:var(--muted);padding:10px 4px;border-radius:8px;cursor:pointer}
 nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
+.wrap,section,.panel{min-width:0}
+.ref{display:flex;flex-direction:column;gap:14px}
+.ref h3{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent)}
+.ref dl{margin:0;display:flex;flex-direction:column}
+.ref .r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ref dt{min-width:0}
+.ref dd{margin:0;font-family:var(--mono);font-size:14px;text-align:right;font-variant-numeric:tabular-nums;max-width:55%}
 .calc{grid-column:1/-1;font-family:var(--mono);font-size:13px}
 .note{font-size:13px;color:var(--muted)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600}
@@ -131,7 +138,7 @@ nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
   <!-- VALORES -->
   <section id="v-ref" class="wrap" hidden>
     <div class="panel"><h2>Valores típicos de TV LED</h2>
-      <div class="tbl"><table id="ref"></table></div>
+      <div id="ref" class="ref"></div>
       <p class="note">Valores típicos con red de 220 V. Cada fabricante varía; usalos como punto de partida.</p>
     </div>
   </section>
@@ -389,7 +396,8 @@ $("#b-reset").addEventListener("click",()=>{
   renderSyms();renderSteps();$("#result").hidden=true;$("#save").hidden=true;window.scrollTo(0,0);
 });
 
-$("#ref").innerHTML="<tr><th>Bloque</th><th>Punto</th><th>Valor</th></tr>"+REF.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="v">${r[2]}</td></tr>`).join("");
+{const g={};REF.forEach(r=>(g[r[0]]=g[r[0]]||[]).push(r));
+$("#ref").innerHTML=Object.keys(g).map(k=>`<div><h3>${k}</h3><dl>${g[k].map(r=>`<div class="r"><dt>${r[1]}</dt><dd>${r[2].replace(/ (V\b|DC)/g,"\u00a0$1")}</dd></div>`).join("")}</dl></div>`).join("");}
 $("#b-exp").addEventListener("click",exportCases);
 $("#imp").addEventListener("change",e=>{if(e.target.files[0])importCases(e.target.files[0]);e.target.value=""});
 renderSyms();initStore();
