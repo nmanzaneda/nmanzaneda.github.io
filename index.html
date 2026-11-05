@@ -16,23 +16,24 @@ body{margin:0}
 img{max-width:100%}
 :root{
   --bg:#eef1f3; --panel:#ffffff; --ink:#18232c; --muted:#5d6b77; --line:#d3dae0;
-  --accent:#0f5f8f; --accent-ink:#ffffff;
+  --accent:#0f5f8f; --accent-ink:#ffffff; --ai:#5b3fa3; --ai-bg:#efeaf9;
   --ok:#1f7a4a; --ok-bg:#e3f2ea; --warn:#a15c00; --warn-bg:#fdf0dc; --bad:#b3261e; --bad-bg:#fbe5e3;
   --sans:"IBM Plex Sans Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"Roboto Mono",monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#11171c; --panel:#1a2229; --ink:#e4eaef; --muted:#93a1ad; --line:#2c3842;
-  --accent:#5fb0e3; --accent-ink:#0b1a24;
+  --accent:#5fb0e3; --accent-ink:#0b1a24; --ai:#b9a2f0; --ai-bg:#241c38;
   --ok:#6fd39c; --ok-bg:#16301f; --warn:#f0b35c; --warn-bg:#33260f; --bad:#ff8a80; --bad-bg:#3a1a18; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#11171c; --panel:#1a2229; --ink:#e4eaef; --muted:#93a1ad; --line:#2c3842;
-  --accent:#5fb0e3; --accent-ink:#0b1a24;
+  --accent:#5fb0e3; --accent-ink:#0b1a24; --ai:#b9a2f0; --ai-bg:#241c38;
   --ok:#6fd39c; --ok-bg:#16301f; --warn:#f0b35c; --warn-bg:#33260f; --bad:#ff8a80; --bad-bg:#3a1a18; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.4;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
 .wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.wrap,section,.panel{min-width:0}
 header{padding-block:18px 4px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 h1{font-size:26px;margin:0;font-weight:700;letter-spacing:.01em}
 h1 small{display:block;font-size:13px;font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
@@ -46,7 +47,7 @@ h2{font-size:19px;margin:0;text-wrap:balance}
 .sym button b{font-size:17px}
 .sym button span{color:var(--muted);font-size:14px}
 .sym button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
-.sym button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sym button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,label.btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 .step{border-top:1px solid var(--line);padding-top:12px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
 .step:first-of-type{border-top:0;padding-top:0}
 .step .where{grid-column:1/-1;color:var(--muted);font-size:14px}
@@ -62,9 +63,12 @@ input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:
 .chip{grid-column:1/-1;font-size:14px;border-radius:6px;padding:6px 10px}
 .chip.ok{background:var(--ok-bg);color:var(--ok)} .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.warn{background:var(--warn-bg);color:var(--warn)}
 .result ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
-.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer;text-align:center}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
 .btn.danger{background:var(--bad);color:var(--panel)}
+.btn.ai{background:var(--ai);color:var(--panel)}
+.btn.small{padding:6px 12px;font-size:14px}
+.btn:disabled{opacity:.6;cursor:wait}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .form{display:grid;gap:10px}
 .form label{display:grid;gap:4px;font-size:14px;color:var(--muted)}
@@ -75,26 +79,43 @@ input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:
 .case .date{font-family:var(--mono);font-size:12px;color:var(--muted)}
 .case .meas{font-family:var(--mono);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .tag{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--warn)}
-table{border-collapse:collapse;width:100%;font-size:14px}
-.tbl{overflow-x:auto}
-th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-td.v{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
-th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-nav{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);display:flex;
-  padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));justify-content:center;gap:4px}
-nav button{font:inherit;font-weight:600;flex:1;max-width:200px;border:0;background:transparent;color:var(--muted);padding:10px 4px;border-radius:8px;cursor:pointer}
-nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
-.wrap,section,.panel{min-width:0}
 .ref{display:flex;flex-direction:column;gap:14px}
 .ref h3{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent)}
 .ref dl{margin:0;display:flex;flex-direction:column}
 .ref .r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
 .ref dt{min-width:0}
 .ref dd{margin:0;font-family:var(--mono);font-size:14px;text-align:right;font-variant-numeric:tabular-nums;max-width:55%}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumb{position:relative;width:76px;height:76px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.thumb button{position:absolute;top:2px;right:2px;width:26px;height:26px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);font-size:15px;line-height:1;cursor:pointer}
+.addfoto{width:76px;height:76px;border:1px dashed var(--muted);border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;padding:4px}
+.similar{background:var(--ok-bg);border-color:transparent}
+.similar .label{color:var(--ok)}
+.sim{display:flex;flex-direction:column;gap:2px;padding-top:8px;border-top:1px solid var(--line)}
+.sim:first-of-type{border-top:0;padding-top:0}
+.sim b{font-size:15px}
+.ai-panel{border-color:var(--ai)}
+.ai-panel .label{color:var(--ai)}
+.ai-out{background:var(--ai-bg);border-radius:8px;padding:12px;font-size:15px;overflow-wrap:anywhere}
+.ai-out p{margin:0 0 8px}.ai-out p:last-child{margin:0}
+.ai-out ul,.ai-out ol{margin:0 0 8px;padding-left:20px}
+.ai-out li{margin-bottom:4px}
+.ai-meta{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.ai-case{background:var(--ai-bg);border-radius:8px;padding:8px 10px;font-size:14px}
+.ai-case summary{cursor:pointer;color:var(--ai);font-weight:600}
+.err{color:var(--bad);font-size:14px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);display:flex;
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));justify-content:center;gap:2px;z-index:5}
+nav button{font:inherit;font-weight:600;font-size:15px;flex:1;max-width:160px;border:0;background:transparent;color:var(--muted);padding:10px 2px;border-radius:8px;cursor:pointer}
+nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
 .calc{grid-column:1/-1;font-family:var(--mono);font-size:13px}
 .note{font-size:13px;color:var(--muted)}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600}
-@media (prefers-reduced-motion:no-preference){.sym button,.btn{transition:transform .1s}.btn:active{transform:scale(.98)}}
+.note a{color:var(--accent)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;z-index:9;max-width:90vw}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px;cursor:zoom-out}
+.viewer img{max-height:100%;object-fit:contain}
+@media (prefers-reduced-motion:no-preference){.btn{transition:transform .1s}.btn:active{transform:scale(.98)}}
 </style>
 </head><body>
 
@@ -109,12 +130,29 @@ nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
     <div class="warnbox"><b>Ojo:</b> en el primario hay 310 a 400 V DC. Descargá el capacitor principal antes de tocar. Los rangos son orientativos; si tenés el esquema del modelo, manda el esquema.</div>
     <div class="label">1 · ¿Qué hace la TV?</div>
     <div class="sym" id="syms"></div>
+
+    <div id="tvdata" class="panel" hidden>
+      <div class="label">2 · La TV</div>
+      <label class="form" style="gap:4px"><span class="note" style="font-size:14px">Modelo / chasis</span><input id="f-model" placeholder="Ej: Samsung UN43TU7000" autocomplete="off"></label>
+      <div>
+        <div class="note" style="margin-bottom:6px">Fotos (etiqueta, placa, falla)</div>
+        <div class="thumbs" id="thumbs"></div>
+        <input id="foto-in" type="file" accept="image/*" multiple hidden>
+      </div>
+    </div>
+
+    <div id="similar" class="panel similar" hidden></div>
     <div id="steps" class="panel" hidden></div>
     <div id="result" class="panel result" hidden></div>
+
+    <div id="ai" class="panel ai-panel" hidden>
+      <div class="label">Sugerencia de la IA</div>
+      <div id="ai-body"></div>
+    </div>
+
     <div id="save" class="panel" hidden>
       <h2>Guardar el caso</h2>
       <div class="form">
-        <label>Modelo / chasis<input id="f-model" placeholder="Ej: Samsung UN43TU7000"></label>
         <label>Dueño (opcional)<input id="f-owner" placeholder="Ej: Rubén, el vecino"></label>
         <label>Qué era al final<input id="f-fault" placeholder="Ej: 2 LEDs abiertos en tira B"></label>
         <label>Qué se cambió<input id="f-part" placeholder="Ej: juego de tiras completo"></label>
@@ -130,8 +168,8 @@ nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
     <div class="panel" id="cases"></div>
     <div class="panel">
       <h2>Respaldo</h2>
-      <p class="note" style="margin:0">Los casos viven sólo en este teléfono. Cada tanto bajá un respaldo y guardalo en Drive o mandátelo por WhatsApp. Si cambiás de teléfono, lo cargás acá.</p>
-      <div class="row"><button class="btn ghost" id="b-exp">Bajar respaldo</button><label class="btn ghost" for="imp" style="display:inline-block">Cargar respaldo</label><input id="imp" type="file" accept=".json,application/json" hidden></div>
+      <p class="note" style="margin:0">Los casos y las fotos viven sólo en este teléfono. Cada tanto bajá un respaldo y guardalo en Drive o mandátelo por WhatsApp. Si cambiás de teléfono, lo cargás acá.</p>
+      <div class="row"><button class="btn ghost" id="b-exp">Bajar respaldo</button><label class="btn ghost" for="imp">Cargar respaldo</label><input id="imp" type="file" accept=".json,application/json" hidden></div>
     </div>
   </section>
 
@@ -139,7 +177,32 @@ nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
   <section id="v-ref" class="wrap" hidden>
     <div class="panel"><h2>Valores típicos de TV LED</h2>
       <div id="ref" class="ref"></div>
-      <p class="note">Valores típicos con red de 220 V. Cada fabricante varía; usalos como punto de partida.</p>
+      <p class="note" style="margin:0">Valores típicos con red de 220 V. Cada fabricante varía; usalos como punto de partida.</p>
+    </div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section id="v-set" class="wrap" hidden>
+    <div class="panel">
+      <h2>Inteligencia artificial</h2>
+      <p class="note" style="margin:0">Para que la IA sugiera qué puede ser, elegí un proveedor y pegá tu clave. La clave queda guardada sólo en este teléfono. Se necesita internet al momento de consultar.</p>
+      <div class="form">
+        <label>Proveedor
+          <select id="s-prov">
+            <option value="gemini">Gemini (Google) · gratis</option>
+            <option value="openai">ChatGPT (OpenAI) · pago por uso</option>
+            <option value="anthropic">Claude (Anthropic) · pago por uso</option>
+          </select>
+        </label>
+        <p class="note" id="s-help" style="margin:0"></p>
+        <label>Clave (API key)<input id="s-key" type="password" autocomplete="off" spellcheck="false" placeholder="Pegá la clave acá"></label>
+        <div class="row"><button class="btn" id="b-test">Probar clave</button></div>
+        <div id="s-status" class="note"></div>
+        <label id="s-model-w" hidden>Modelo
+          <select id="s-model"></select>
+        </label>
+      </div>
+      <p class="note" style="margin:0">Una suscripción paga (ChatGPT Plus, Claude Pro) no sirve acá: estos proveedores piden una clave de API aparte, que se paga por uso.</p>
     </div>
   </section>
 </div>
@@ -148,12 +211,14 @@ nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
   <button data-v="diag" aria-current="page">Diagnóstico</button>
   <button data-v="cases">Casos</button>
   <button data-v="ref">Valores</button>
+  <button data-v="set">Ajustes</button>
 </nav>
 <div class="toast" id="toast" hidden></div>
+<div class="viewer" id="viewer" hidden><img id="viewer-img" alt="Foto ampliada"></div>
 
 <script>
 // ---------- Datos de diagnóstico ----------
-// step: {id,name,where,type:'num'|'yn',min,max,unit,low,high,zero,yes,no}
+// step: {id,name,where,type:'num'|'yn',min,max,unit,low,high,zero,yes,no,optional,calc,dep}
 const SYMPTOMS=[
  {id:"noenc",title:"No enciende",sub:"LED de standby apagado, no hace nada",steps:[
   {id:"ac",name:"Tensión de red en la entrada",where:"Bornes del conector de 220 V de la fuente",type:"num",min:198,max:242,unit:"V~",
@@ -210,6 +275,61 @@ const SYMPTOMS=[
    low:"VCOM fuera de lugar: imagen con parpadeo o colores raros. Revisar buffer VCOM / gamma.",high:"VCOM fuera de lugar: imagen con parpadeo o colores raros. Revisar buffer VCOM / gamma."}
  ],ok:"La T-con tiene sus tensiones bien. Probá con otro flex LVDS/V-by-One, resetear o regrabar la EEPROM de la T-con, o la falla está en el panel (COF/barras)."},
 
+ {id:"manchas",title:"Manchas blancas o zonas claras",sub:"Círculos claros, sombras, brillo desparejo",steps:[
+  {id:"circ",name:"¿Son círculos claros repartidos parejo, sobre todo en fondo gris?",where:"Poné una imagen gris o blanca de fondo",type:"yn",
+   yes:"Lentes difusoras despegadas de los LEDs. Hay que abrir el panel, pegar las lentes con pegamento para lentes (o cianoacrilato en gel con cuidado) y alinearlas centradas sobre cada LED."},
+  {id:"azul",name:"¿Los círculos o la imagen tiran a azul o violeta?",where:"Mirá con fondo blanco",type:"yn",
+   yes:"LEDs degradados (pierden el fósforo y se ponen azules). Suele anticipar que se van a cortar: cambiar el juego de tiras completo."},
+  {id:"zona",name:"¿Hay una zona más oscura que el resto?",where:"Con fondo blanco",type:"yn",
+   yes:"Un LED o tira con poco brillo, o una lente caída. Si es una franja entera, ver el síntoma \"Media pantalla oscura\"."},
+  {id:"film",name:"¿Hay sombras fijas, marcas o arrugas que no cambian con la imagen?",where:"Mirá con luz de costado",type:"yn",
+   yes:"Films o difusor corridos, arrugados o con humedad. Desarmar y acomodar las láminas en su orden. Si es una marca de golpe, es el panel."}
+ ],ok:"Si no hay nada de esto, puede ser un ajuste de imagen (retroiluminación local, modo de imagen). Probá restablecer la configuración de imagen."},
+
+ {id:"media",title:"Media pantalla oscura",sub:"Una mitad, una franja o un costado sin luz",steps:[
+  {id:"lint2",name:"¿Con linterna, en la parte oscura se ve la imagen?",where:"Linterna pegada a la zona oscura",type:"yn",
+   yes:"Es backlight: una tira o un canal del driver no enciende. Seguí abajo.",
+   no:"No hay imagen en esa zona: es T-con o panel. En paneles con dos flex, revisá el flex de esa mitad y las tensiones de la T-con."},
+  {id:"vcan",name:"Tensión en el conector de la tira que no prende",where:"Conector de esa tira, con la TV encendida",type:"num",min:20,max:250,unit:"V",
+   zero:"Ese canal no tiene salida: MOSFET, diodo o resistencia sensora de ese canal en el driver, o el driver lo cortó por protección.",
+   high:"Hay tensión pero no prende: tira abierta (LED cortado o soldadura del conector). Probá con tester de backlight."},
+  {id:"conec",name:"¿El conector de esa tira está flojo, sulfatado o quemado?",where:"Mirá con lupa los pines",type:"yn",
+   yes:"Limpiar o cambiar el conector. Si está quemado, revisar también la tira: suele haber un LED en corto que forzó el canal."}
+ ],ok:"Si el canal tiene tensión normal y la tira prende con el tester, revisá el cable entre driver y tira y la pista de retorno (LED−) en el driver."},
+
+ {id:"sonido",title:"Sin sonido",sub:"Imagen bien pero no se escucha nada",steps:[
+  {id:"cfg",name:"¿La salida de audio está en \"Parlantes de TV\"?",where:"Menú de sonido de la TV",type:"yn",
+   no:"La salida está en óptico, HDMI ARC o Bluetooth. Cambiarla a parlantes de TV y probar."},
+  {id:"auri",name:"¿Sale sonido por auriculares o salida óptica?",where:"Probar con auriculares o una barra de sonido",type:"yn",
+   yes:"El procesador de audio funciona: la falla está en el amplificador o los parlantes. Seguí abajo.",
+   no:"No sale audio por ningún lado: falla en la main (procesador de audio) o firmware. Probá un reset de fábrica antes de seguir."},
+  {id:"vamp",name:"Alimentación del amplificador",where:"Pata VCC/PVDD del integrado amplificador (12 V o 24 V)",type:"num",min:10.5,max:25.5,unit:"V",
+   zero:"El amplificador no tiene alimentación: fusible o resistencia de esa línea, o la fuente no la entrega.",low:"Alimentación del amplificador baja: capacitores o la línea de la fuente."},
+  {id:"parl",name:"Resistencia de cada parlante",where:"Desconectado, medir en los cables",type:"num",min:3,max:9,unit:"Ω",
+   high:"Parlante abierto (bobina cortada): cambiar el parlante.",zero:"Parlante o cable en corto: puede haber dañado el amplificador."}
+ ],ok:"Amplificador alimentado y parlantes bien: revisá la pata MUTE del amplificador (la main lo puede tener silenciado) o el integrado amplificador."},
+
+ {id:"wifi",title:"No conecta WiFi o Bluetooth",sub:"No encuentra redes, no aparece el módulo",steps:[
+  {id:"mac",name:"¿En el menú aparece la dirección MAC del WiFi?",where:"Menú de red o \"Información del producto\"",type:"yn",
+   no:"La TV no ve el módulo: módulo dañado, cable flex suelto o sin alimentación. Medí abajo.",
+   yes:"El módulo está detectado: puede ser antena, router o firmware."},
+  {id:"vwifi",name:"Alimentación del módulo WiFi",where:"Conector del módulo (3,3 V o 5 V según modelo)",type:"num",min:3.2,max:5.3,unit:"V",
+   zero:"No llega alimentación al módulo: regulador o fusible en la main, o el flex.",low:"Alimentación baja: regulador de la main."},
+  {id:"ant",name:"¿Las antenas del módulo están conectadas y sanas?",where:"Cables finitos que salen del módulo",type:"yn",
+   no:"Reconectar o cambiar las antenas. Sin antena encuentra pocas redes o ninguna."},
+  {id:"otra",name:"¿Conecta con otra red (por ejemplo el celular como hotspot)?",where:"Prueba rápida",type:"yn",
+   yes:"El módulo anda: es el router (banda 5 GHz, seguridad, filtro MAC) o la configuración."}
+ ],ok:"Probá reset de red, actualizar el firmware de la TV o cambiar el módulo (se consiguen usados del mismo modelo)."},
+
+ {id:"control",title:"No responde el control",sub:"El control remoto no hace nada",steps:[
+  {id:"emite",name:"¿Al apretar un botón se ve una luz en la cámara del celular?",where:"Apuntá el control a la cámara (en algunas, la frontal)",type:"yn",
+   no:"El control no emite: pilas, contactos sulfatados, LED o cristal del control. Limpiar con alcohol isopropílico."},
+  {id:"teclas",name:"¿Responde a los botones de la TV?",where:"Teclado en el borde o atrás de la TV",type:"yn",
+   no:"Tampoco responde al teclado: el problema está en la main o el firmware, no en el control."},
+  {id:"vir",name:"Alimentación del receptor IR",where:"Pata VCC del receptor (placa del LED de standby)",type:"num",min:3.1,max:5.3,unit:"V",
+   zero:"El receptor no tiene alimentación: flex o cable de la placa del LED/teclado, o el standby."}
+ ],ok:"Control y alimentación bien: cambiar el receptor IR (3 patas, se consigue fácil) y revisar el flex de esa placita."},
+
  {id:"reinicia",title:"Se reinicia o se apaga sola",sub:"Loop de logo, se corta al rato",steps:[
   {id:"sb",name:"Standby 5 V bajo carga",where:"Con la TV encendida",type:"num",min:4.8,max:5.3,unit:"V",low:"El standby cae con carga: capacitores secos en el secundario standby."},
   {id:"v12",name:"12 V con la TV encendida",where:"Conector fuente → main. Vacío si no aplica",type:"num",min:11.4,max:12.8,unit:"V",optional:true,low:"12 V cae: capacitores de salida o sobrecarga; la main se resetea."},
@@ -234,7 +354,9 @@ const REF=[
  ["T-con","VGH","22–35 V"],
  ["T-con","VGL","−4 a −10 V"],
  ["T-con","VCOM","≈ la mitad de AVDD"],
- ["Main","Lógica","3,3 V · 1,8 V (DDR) · 1,0–1,2 V (core)"]
+ ["Main","Lógica","3,3 V · 1,8 V (DDR) · 1,0–1,2 V (core)"],
+ ["Audio","Amplificador","12 o 24 V · parlantes 4–8 Ω"],
+ ["Otros","Receptor IR / WiFi","3,3 o 5 V"]
 ];
 
 const EXAMPLES=[
@@ -242,31 +364,70 @@ const EXAMPLES=[
  {id:"ej2",fecha:"2026-09-03",modelo:"Philips 32PHG5813",sintoma:"No enciende",falla:"Capacitor del secundario standby seco",repuesto:"Capacitor 1000 µF 16 V",notas:"",dueno:"",med:"Standby 5 V: 2,1 V",example:true}
 ];
 
-// ---------- Estado ----------
-let cur=null, vals={}, cases=[], db=null, toastT;
+// ---------- Utilidades ----------
+let cur=null, vals={}, cases=[], toastT, curFotos=[], curAI=null, curCaseId=null;
 const $=s=>document.querySelector(s);
 const fmt=n=>String(n).replace(".",",");
-function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2200)}
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2600)}
 function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 
-// ---------- Almacenamiento: base del artefacto, o el teléfono si no hay ----------
+// ---------- Fotos (IndexedDB) ----------
+let idbP=null;
+function idb(){return idbP||(idbP=new Promise((res,rej)=>{const r=indexedDB.open("bancotv",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("fotos");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))}
+async function fotoOp(mode,fn){const d=await idb();return new Promise((res,rej)=>{const t=d.transaction("fotos",mode);const st=t.objectStore("fotos");let out;
+  const r=fn(st);if(r)r.onsuccess=()=>out=r.result;t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error)})}
+const fotoPut=(id,b)=>fotoOp("readwrite",s=>s.put(b,id));
+const fotoGet=id=>fotoOp("readonly",s=>s.get(id));
+const fotoDel=id=>fotoOp("readwrite",s=>s.delete(id));
+const urlCache=new Map();
+async function fotoURL(id){if(urlCache.has(id))return urlCache.get(id);const b=await fotoGet(id);if(!b)return null;const u=URL.createObjectURL(b);urlCache.set(id,u);return u}
+async function shrink(blob,max=1600,q=.82){
+  const bmp=await createImageBitmap(blob);const sc=Math.min(1,max/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas");c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close&&bmp.close();
+  return new Promise(r=>c.toBlob(r,"image/jpeg",q));
+}
+function blobToB64(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(b)})}
+async function fillImgs(root){for(const im of root.querySelectorAll("img[data-foto]")){const u=await fotoURL(im.dataset.foto).catch(()=>null);if(u)im.src=u;else im.closest(".thumb")?.remove()}}
+function renderThumbs(){
+  $("#thumbs").innerHTML=curFotos.map(id=>`<div class="thumb"><img data-foto="${id}" alt="Foto de la TV"><button data-rmfoto="${id}" aria-label="Quitar foto">×</button></div>`).join("")
+   +`<label class="addfoto" for="foto-in">+ Agregar foto</label>`;
+  fillImgs($("#thumbs"));
+}
+async function addFotos(files){
+  for(const f of files){
+    try{const b=await shrink(f);const id="f"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await fotoPut(id,b);curFotos.push(id)}
+    catch(e){toast("No se pudo cargar una foto")}
+  }
+  renderThumbs();
+}
+
+// ---------- Casos ----------
 const LS="bancotv.casos";
-function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return[]}}
-function lsSave(){try{localStorage.setItem(LS,JSON.stringify(cases))}catch(e){}}
-function initStore(){cases=lsLoad();renderCases()}
-function addCase(c){cases.unshift(c);lsSave();renderCases()}
-function delCase(id){cases=cases.filter(c=>c.id!==id);lsSave();renderCases()}
-function exportCases(){
-  const blob=new Blob([JSON.stringify({app:"banco-tv",version:1,casos:cases},null,1)],{type:"application/json"});
+function lsSave(){lsSet(LS,cases)}
+function initStore(){cases=lsGet(LS,[]);renderCases()}
+function upsertCase(c){const i=cases.findIndex(x=>x.id===c.id);if(i>=0)cases[i]=c;else cases.unshift(c);lsSave();renderCases()}
+async function delCase(id){const c=cases.find(x=>x.id===id);cases=cases.filter(x=>x.id!==id);lsSave();renderCases();
+  for(const f of (c?.fotos||[])){if(!curFotos.includes(f))await fotoDel(f).catch(()=>{})}}
+
+async function exportCases(){
+  toast("Preparando respaldo…");
+  const fotos={};
+  for(const c of cases)for(const f of (c.fotos||[])){const b=await fotoGet(f).catch(()=>null);if(b)fotos[f]=await blobToB64(b)}
+  const blob=new Blob([JSON.stringify({app:"banco-tv",version:2,casos:cases,fotos})],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);
   a.download="banco-tv-respaldo-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();
   toast(cases.length+" casos exportados");
 }
 function importCases(file){
   const r=new FileReader();
-  r.onload=()=>{try{
+  r.onload=async()=>{try{
     const d=JSON.parse(r.result);const list=Array.isArray(d)?d:d.casos;
     if(!Array.isArray(list))throw 0;
+    for(const [id,b64] of Object.entries(d.fotos||{})){const b=await (await fetch("data:image/jpeg;base64,"+b64)).blob();await fotoPut(id,b)}
     const ids=new Set(cases.map(c=>c.id));let n=0;
     list.forEach(c=>{if(c&&c.id&&!ids.has(c.id)){cases.push(c);n++}});
     cases.sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));lsSave();renderCases();toast(n+" casos cargados");
@@ -276,11 +437,18 @@ function importCases(file){
 
 // ---------- Diagnóstico ----------
 function renderSyms(){
-  $("#syms").innerHTML=SYMPTOMS.map(s=>`<button data-s="${s.id}" aria-pressed="${cur?.id===s.id}"><b>${s.title}</b><span>${s.sub}</span></button>`).join("");
+  const list=cur?[cur]:SYMPTOMS;
+  $("#syms").innerHTML=list.map(s=>`<button data-s="${s.id}" aria-pressed="${cur?.id===s.id}"><b>${s.title}</b><span>${s.sub}</span></button>`).join("")
+    +(cur?`<div><button class="btn ghost small" data-change>Cambiar síntoma</button></div>`:"");
 }
 function rangeOf(st){
   if(st.dep==="avdd"){const a=vals.avdd;if(typeof a!=="number")return null;return[a/2-1.5,a/2+1.5]}
   if(st.min==null)return null;return[st.min,st.max];
+}
+function rangeText(st){
+  if(st.type==="yn")return"";const r=rangeOf(st);
+  if(st.dep==="avdd")return r?`${fmt(r[0].toFixed(1))} a ${fmt(r[1].toFixed(1))} ${st.unit}`:"≈ AVDD ÷ 2";
+  return `${fmt(st.min)} a ${fmt(st.max)} ${st.unit}`;
 }
 function evalStep(st){
   const v=vals[st.id];
@@ -300,36 +468,37 @@ function evalStep(st){
   return {k:"ok",m:"Dentro de lo normal."};
 }
 function renderSteps(){
-  if(!cur){$("#steps").hidden=true;return}
+  if(!cur){["#steps","#tvdata","#similar","#result","#ai","#save"].forEach(s=>$(s).hidden=true);return}
+  $("#tvdata").hidden=false;
   const box=$("#steps");box.hidden=false;
-  box.innerHTML=`<div class="label">2 · Medí y cargá</div><h2>${cur.title}</h2>`+cur.steps.map(st=>{
-    const r=rangeOf(st);
-    let rtxt= st.type==="yn"?"": st.dep==="avdd"?(r?`${fmt(r[0].toFixed(1))} a ${fmt(r[1].toFixed(1))} ${st.unit}`:"≈ AVDD ÷ 2"):`${fmt(st.min)} a ${fmt(st.max)} ${st.unit}`;
+  box.innerHTML=`<div class="label">3 · Medí y cargá</div><h2>${cur.title}</h2>`+cur.steps.map(st=>{
     const input= st.type==="yn"
       ? `<div class="yn"><button data-yn="${st.id}" data-v="si" aria-pressed="${vals[st.id]==="si"}">Sí</button><button data-yn="${st.id}" data-v="no" aria-pressed="${vals[st.id]==="no"}">No</button></div>`
       : `<div class="inrow"><input id="m-${st.id}" inputmode="decimal" data-m="${st.id}" value="${vals[st.id]!==undefined?fmt(vals[st.id]):""}" aria-label="${esc(st.name)}"><span class="u">${st.unit}</span></div>`;
     const calc= st.calc?`<div class="calc"><label>LEDs en serie en total: <input id="m-nled" data-m="nled" inputmode="numeric" style="width:70px;display:inline-block;padding:6px" value="${vals.nled??""}"></label> <span id="perled"></span></div>`:"";
-    return `<div class="step"><div class="name">${st.name}${st.optional?' <span class="range">(opcional)</span>':""}<div class="range">${rtxt}</div></div>${input}<div class="where">${st.where}</div>${calc}<div class="chip" id="c-${st.id}" hidden></div></div>`;
+    return `<div class="step"><div class="name">${st.name}${st.optional?' <span class="range">(opcional)</span>':""}<div class="range">${rangeText(st)}</div></div>${input}<div class="where">${st.where}</div>${calc}<div class="chip" id="c-${st.id}" hidden></div></div>`;
   }).join("");
-  updateChips();
+  updateChips();renderSimilar();renderAI();
 }
+function badList(){if(!cur)return[];return cur.steps.map(evalStep).filter(e=>e&&e.k==="bad").map(e=>e.m)}
 function updateChips(){
   if(!cur)return;
-  const res=[];let filled=0;
+  let filled=0;
   cur.steps.forEach(st=>{
     const e=evalStep(st);const c=document.getElementById("c-"+st.id);
     if(!c)return;
     if(!e){c.hidden=true;return}
     filled++;c.hidden=false;c.className="chip "+e.k;c.textContent=e.m;
-    if(e.k==="bad")res.push(e.m);
   });
+  const res=badList();
   const pl=document.getElementById("perled");
   if(pl){pl.textContent=(vals.vled&&vals.nled)?`→ ${fmt((vals.vled/vals.nled).toFixed(2))} V por LED`:""}
   const r=$("#result");
-  if(!filled){r.hidden=true;$("#save").hidden=true;return}
-  r.hidden=false;$("#save").hidden=false;
-  r.innerHTML=`<div class="label">3 · Qué revisar</div>`+(res.length
-    ?`<h2>${res.length===1?"Una medición fuera de lugar":res.length+" mediciones fuera de lugar"}</h2><ol>${res.map(m=>`<li>${m}</li>`).join("")}</ol>`
+  $("#ai").hidden=false;$("#save").hidden=false;
+  if(!filled){r.hidden=true;return}
+  r.hidden=false;
+  r.innerHTML=`<div class="label">4 · Qué revisar</div>`+(res.length
+    ?`<h2>${res.length===1?"Un dato fuera de lugar":res.length+" datos fuera de lugar"}</h2><ol>${res.map(m=>`<li>${m}</li>`).join("")}</ol>`
     :`<h2>Todo lo medido está bien</h2><p style="margin:0">${cur.ok}</p>`);
 }
 function measSummary(){
@@ -339,13 +508,202 @@ function measSummary(){
     return s.type==="yn"?`${short}: ${vals[s.id]==="si"?"sí":"no"}`:`${short}: ${fmt(vals[s.id])} ${s.unit}`}).join(" · ");
 }
 
-// ---------- Casos ----------
+// ---------- Ya te pasó antes ----------
+function norm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim()}
+function similarCases(){
+  if(!cur)return[];
+  const model=norm($("#f-model").value);const brand=model.split(/\s+/)[0]||"";
+  return cases.filter(c=>c.id!==curCaseId).map(c=>{
+    const cm=norm(c.modelo);let s=0,why=[];
+    if(model&&cm&&(cm===model||cm.includes(model)||model.includes(cm))){s+=5;why.push("mismo modelo")}
+    else if(brand.length>1&&cm.split(/\s+/)[0]===brand){s+=1;why.push("misma marca")}
+    if(c.sintoma===cur.title){s+=2;why.unshift("mismo síntoma")}
+    return {c,s,why};
+  }).filter(x=>x.s>=2&&(x.c.falla||x.c.repuesto)).sort((a,b)=>b.s-a.s||(b.c.fecha||"").localeCompare(a.c.fecha||"")).slice(0,3);
+}
+function renderSimilar(){
+  const box=$("#similar");const l=similarCases();
+  if(!l.length){box.hidden=true;return}
+  box.hidden=false;
+  box.innerHTML=`<div class="label">Ya te pasó antes</div>`+l.map(({c,why})=>`<div class="sim">
+    <b>${esc(c.modelo||"Sin modelo")} · ${esc(c.fecha)}</b>
+    <span class="note">${why.join(" · ")}</span>
+    ${c.falla?`<span>Era: ${esc(c.falla)}</span>`:""}${c.repuesto?`<span>Se cambió: ${esc(c.repuesto)}</span>`:""}</div>`).join("");
+}
+
+// ---------- IA ----------
+const PROV={
+  gemini:{name:"Gemini",keyUrl:"https://aistudio.google.com/apikey",fallback:"gemini-flash-latest",
+    help:'Gratis, sin tarjeta. Entrá a <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> con una cuenta de Google, tocá "Create API key" y copiá la clave.'},
+  openai:{name:"ChatGPT",keyUrl:"https://platform.openai.com/api-keys",fallback:"gpt-4o-mini",
+    help:'Se paga por uso (centavos por consulta). Creá la clave en <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a> y cargá saldo en la cuenta.'},
+  anthropic:{name:"Claude",keyUrl:"https://console.anthropic.com/settings/keys",fallback:"claude-haiku-5-5",
+    help:'Se paga por uso (centavos por consulta). Creá la clave en <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> y cargá saldo en la cuenta.'}
+};
+let cfg=lsGet("bancotv.ia",{prov:"gemini",keys:{},models:{}});
+cfg.keys=cfg.keys||{};cfg.models=cfg.models||{};
+const saveCfg=()=>lsSet("bancotv.ia",cfg);
+const hasKey=()=>!!(cfg.keys[cfg.prov]||"").trim();
+
+function verNum(id){const m=String(id).match(/(\d+(?:[.-]\d+)?)/);if(!m)return[0];return m[1].split(/[.-]/).map(Number).map(n=>n>1000?0:n)}
+function cmpVer(a,b){const x=verNum(a),y=verNum(b);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d}return 0}
+
+async function apiErr(res){let m="";try{const j=await res.json();m=j.error?.message||j.error?.type||JSON.stringify(j).slice(0,200)}catch(e){}
+  if(res.status===401||res.status===403||/api.?key|invalid.*key|permission/i.test(m))return new Error("La clave no es válida o no tiene permiso. Revisala en Ajustes.");
+  if(res.status===429)return new Error("Se terminó el cupo por ahora. Probá en un rato o mañana.");
+  if(res.status===402||/credit|balance|billing|quota/i.test(m))return new Error("La cuenta no tiene saldo o cupo disponible.");
+  return new Error("Error "+res.status+(m?": "+m:""));}
+
+async function listModels(prov,key){
+  let ids=[];
+  if(prov==="gemini"){
+    const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",{headers:{"x-goog-api-key":key}});
+    if(!r.ok)throw await apiErr(r);const j=await r.json();
+    ids=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>m.name.replace(/^models\//,""))
+      .filter(id=>/^gemini/.test(id)&&!/(image|tts|audio|live|embed|vision|robotics|computer|native|exp)/.test(id));
+    const score=id=>(/flash/.test(id)?4:/pro/.test(id)?1:0)-(/lite/.test(id)?1:0)-(/preview/.test(id)?2:0)-(/latest/.test(id)?3:0);
+    ids.sort((a,b)=>score(b)-score(a)||cmpVer(b,a));
+  }else if(prov==="openai"){
+    const r=await fetch("https://api.openai.com/v1/models",{headers:{Authorization:"Bearer "+key}});
+    if(!r.ok)throw await apiErr(r);const j=await r.json();
+    ids=(j.data||[]).map(m=>m.id).filter(id=>/^(gpt-|o\d)/.test(id)&&!/(audio|realtime|search|transcribe|tts|image|instruct|codex|nano|preview|\d{4}-\d{2}-\d{2})/.test(id));
+    const score=id=>(/mini/.test(id)?3:0)+(/^gpt-/.test(id)?1:0);
+    ids.sort((a,b)=>score(b)-score(a)||cmpVer(b,a));
+  }else{
+    const r=await fetch("https://api.anthropic.com/v1/models?limit=100",{headers:{"x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}});
+    if(!r.ok)throw await apiErr(r);const j=await r.json();
+    ids=(j.data||[]).map(m=>m.id);
+    const score=id=>(/sonnet/.test(id)?3:/haiku/.test(id)?2:0);
+    ids.sort((a,b)=>score(b)-score(a)||cmpVer(b,a));
+  }
+  return ids;
+}
+
+const SYS=`Sos un técnico experto en reparación de televisores LED y LCD (fuentes conmutadas, PFC, drivers de backlight, tiras LED, T-con, mainboard, audio, WiFi). Ayudás a otro técnico con mucha experiencia que está en el banco de trabajo, en Argentina (red de 220 V).
+Con los datos que te paso (síntoma, mediciones con su rango esperado, el análisis automático de la app, casos parecidos de su propio historial y fotos si hay), respondé en español rioplatense, directo y práctico:
+1. Las causas más probables, ordenadas de más a menos probable, cada una con el porqué en una línea.
+2. Qué medir o probar a continuación, concreto: dónde y qué valor esperar.
+3. Si hay fotos, decí lo que ves que sea relevante (capacitores inflados, quemaduras, soldaduras, modelo de la etiqueta).
+Si conocés fallas típicas de ese modelo o chasis, mencionalas. Si no lo conocés, no inventes datos específicos: decilo. Si faltan datos clave, decí cuáles.
+Máximo 250 palabras. Sin introducción ni despedida. Usá listas cortas.`;
+
+function buildPrompt(){
+  const L=[];
+  L.push("TV: "+($("#f-model").value.trim()||"modelo no indicado"));
+  L.push("Síntoma: "+cur.title+" ("+cur.sub+")");
+  L.push("\nMediciones y pruebas:");
+  let any=false;
+  cur.steps.forEach(st=>{
+    const v=vals[st.id];if(v===undefined||v==="")return;any=true;
+    const e=evalStep(st);
+    if(st.type==="yn")L.push(`- ${st.name} → ${v==="si"?"Sí":"No"}`);
+    else L.push(`- ${st.name} (${st.where}): ${fmt(v)} ${st.unit} (esperado ${rangeText(st)}) → ${e?.k==="ok"?"en rango":"FUERA DE RANGO"}`);
+  });
+  if(vals.vled&&vals.nled)L.push(`- LEDs en serie: ${vals.nled} → ${fmt((vals.vled/vals.nled).toFixed(2))} V por LED`);
+  if(!any)L.push("- Todavía no cargó mediciones.");
+  const nm=cur.steps.filter(st=>vals[st.id]===undefined||vals[st.id]==="").map(st=>st.name);
+  if(nm.length&&any)L.push("Sin medir todavía: "+nm.join("; "));
+  const bad=badList();
+  L.push("\nAnálisis automático de la app: "+(bad.length?bad.join(" | "):(any?"todo lo medido está en rango. Sugerencia de la app: "+cur.ok:"sin datos")));
+  const sim=similarCases();
+  if(sim.length)L.push("\nCasos parecidos de su historial: "+sim.map(({c})=>`${c.modelo||"sin modelo"} (${c.sintoma}): era ${c.falla||"?"}, se cambió ${c.repuesto||"?"}`).join(" | "));
+  const notas=$("#f-notes").value.trim();if(notas)L.push("\nNotas del técnico: "+notas);
+  if(curFotos.length)L.push(`\nTe adjunto ${Math.min(curFotos.length,4)} foto(s) de la TV.`);
+  return L.join("\n");
+}
+
+async function callAI(){
+  const prov=cfg.prov,key=cfg.keys[prov].trim();
+  let model=cfg.models[prov];
+  if(!model){try{const ids=await listModels(prov,key);model=ids[0]||PROV[prov].fallback}catch(e){if(/clave|saldo/.test(e.message))throw e;model=PROV[prov].fallback}
+    cfg.models[prov]=model;saveCfg()}
+  const text=buildPrompt();
+  const imgs=[];
+  for(const id of curFotos.slice(0,4)){const b=await fotoGet(id).catch(()=>null);if(b)imgs.push(await blobToB64(await shrink(b,1024,.8)))}
+  let out="";
+  if(prov==="gemini"){
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",
+      headers:{"Content-Type":"application/json","x-goog-api-key":key},
+      body:JSON.stringify({systemInstruction:{parts:[{text:SYS}]},contents:[{role:"user",parts:[{text},...imgs.map(d=>({inline_data:{mime_type:"image/jpeg",data:d}}))]}]})});
+    if(!r.ok)throw await apiErr(r);const j=await r.json();
+    out=(j.candidates?.[0]?.content?.parts||[]).filter(p=>!p.thought).map(p=>p.text||"").join("");
+    if(!out&&j.promptFeedback?.blockReason)throw new Error("Gemini no quiso responder ("+j.promptFeedback.blockReason+").");
+  }else if(prov==="openai"){
+    const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",
+      headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},
+      body:JSON.stringify({model,messages:[{role:"system",content:SYS},{role:"user",content:[{type:"text",text},...imgs.map(d=>({type:"image_url",image_url:{url:"data:image/jpeg;base64,"+d}}))]}]})});
+    if(!r.ok)throw await apiErr(r);const j=await r.json();
+    out=j.choices?.[0]?.message?.content||"";
+  }else{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model,max_tokens:2000,system:SYS,messages:[{role:"user",content:[...imgs.map(d=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:d}})),{type:"text",text}]}]})});
+    if(!r.ok)throw await apiErr(r);const j=await r.json();
+    out=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+  }
+  if(!out.trim())throw new Error("La IA no devolvió respuesta. Probá de nuevo.");
+  return {texto:out.trim(),prov:PROV[prov].name,modelo:model,fecha:new Date().toISOString().slice(0,16).replace("T"," ")};
+}
+
+function md(t){
+  const lines=esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<i>$2</i>").split(/\n/);
+  let h="",list=null;
+  const close=()=>{if(list){h+=`</${list}>`;list=null}};
+  for(let l of lines){
+    const ul=l.match(/^\s*[-*•]\s+(.*)/),ol=l.match(/^\s*\d+[.)]\s+(.*)/),hd=l.match(/^\s*#{1,6}\s+(.*)/);
+    if(ul||ol){const tag=ul?"ul":"ol";if(list!==tag){close();h+=`<${tag}>`;list=tag}h+=`<li>${(ul||ol)[1]}</li>`}
+    else{close();if(hd)h+=`<p><b>${hd[1]}</b></p>`;else if(l.trim())h+=`<p>${l}</p>`}
+  }
+  close();return h;
+}
+
+function renderAI(){
+  const b=$("#ai-body");
+  if(!hasKey()){
+    b.innerHTML=`<p class="note" style="margin:0">Configurá la IA una vez (es gratis con Gemini) y te sugiere qué puede ser según lo que cargaste y las fotos.</p><div><button class="btn ai" data-goto="set">Configurar IA</button></div>`;return}
+  b.innerHTML=(curAI?`<div class="ai-out">${md(curAI.texto)}</div><div class="ai-meta">${esc(curAI.prov)} · ${esc(curAI.modelo)} · ${esc(curAI.fecha)}</div>`:
+    `<p class="note" style="margin:0">Cargá lo que tengas (modelo, mediciones, fotos) y preguntale. Podés volver a preguntar cuando sumes más datos.</p>`)
+    +`<div class="row"><button class="btn ai" id="b-ask">${curAI?"Preguntar de nuevo":"¿Qué puede ser?"}</button></div><div id="ai-err" class="err"></div>`;
+}
+async function ask(){
+  const btn=$("#b-ask");btn.disabled=true;btn.textContent="Pensando…";$("#ai-err").textContent="";
+  try{
+    if(!navigator.onLine)throw new Error("Sin internet. La IA necesita conexión en el momento de consultar.");
+    curAI=await callAI();renderAI();
+    if(curCaseId){const c=cases.find(x=>x.id===curCaseId);if(c){c.ia=curAI;upsertCase(c)}}
+  }catch(e){btn.disabled=false;btn.textContent=curAI?"Preguntar de nuevo":"¿Qué puede ser?";
+    $("#ai-err").textContent=e.message==="Failed to fetch"?"No se pudo conectar. Revisá internet y probá de nuevo.":e.message}
+}
+
+// ---------- Ajustes ----------
+function renderSettings(){
+  $("#s-prov").value=cfg.prov;$("#s-help").innerHTML=PROV[cfg.prov].help;$("#s-key").value=cfg.keys[cfg.prov]||"";
+  const m=cfg.models[cfg.prov];
+  if(m){$("#s-model-w").hidden=false;const sel=$("#s-model");if(![...sel.options].some(o=>o.value===m))sel.innerHTML=`<option>${esc(m)}</option>`;sel.value=m}
+  else $("#s-model-w").hidden=true;
+  $("#s-status").textContent=hasKey()?(m?"Lista para usar.":"Clave guardada. Tocá \"Probar clave\" para verificarla."):"";
+}
+async function testKey(){
+  const key=$("#s-key").value.trim();cfg.keys[cfg.prov]=key;saveCfg();
+  if(!key){$("#s-status").textContent="Pegá la clave primero.";return}
+  const b=$("#b-test");b.disabled=true;$("#s-status").textContent="Probando…";
+  try{
+    const ids=await listModels(cfg.prov,key);
+    if(!ids.length)throw new Error("La clave funciona pero no encontré modelos para usar.");
+    const prev=cfg.models[cfg.prov];cfg.models[cfg.prov]=ids.includes(prev)?prev:ids[0];saveCfg();
+    $("#s-model").innerHTML=ids.slice(0,25).map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join("");
+    $("#s-model").value=cfg.models[cfg.prov];$("#s-model-w").hidden=false;
+    $("#s-status").textContent="Clave correcta. Ya podés usar la IA desde Diagnóstico.";
+  }catch(e){$("#s-status").textContent=e.message==="Failed to fetch"?"No se pudo conectar. Revisá internet.":e.message}
+  b.disabled=false;renderAI();
+}
+
+// ---------- Lista de casos ----------
 let confirmId=null;
 function renderCases(){
-  const q=($("#q").value||"").toLowerCase();
+  const q=norm($("#q").value);
   const list=cases.length?cases:EXAMPLES;
-  const f=list.filter(c=>!q||[c.modelo,c.sintoma,c.falla,c.repuesto,c.notas,c.dueno,c.med].join(" ").toLowerCase().includes(q));
-  const box=$("#cases");
+  const f=list.filter(c=>!q||norm([c.modelo,c.sintoma,c.falla,c.repuesto,c.notas,c.dueno,c.med,c.ia?.texto].join(" ")).includes(q));
   let html=cases.length?"":`<p class="note" style="margin:0">Todavía no hay casos guardados. Estos dos son de ejemplo, para que veas cómo queda; desaparecen cuando guardes el primero.</p>`;
   html+= f.length? f.map(c=>`<div class="case">
      <div class="top"><span class="model">${esc(c.modelo||"Sin modelo")}</span><span class="date">${esc(c.fecha)}</span></div>
@@ -355,52 +713,73 @@ function renderCases(){
      ${c.repuesto?`<div>Se cambió: ${esc(c.repuesto)}</div>`:""}
      ${c.notas?`<div class="note">${esc(c.notas)}</div>`:""}
      ${c.med?`<div class="meas">${esc(c.med)}</div>`:""}
+     ${(c.fotos||[]).length?`<div class="thumbs">${c.fotos.map(id=>`<div class="thumb"><img data-foto="${id}" alt="Foto del caso"></div>`).join("")}</div>`:""}
+     ${c.ia?`<details class="ai-case"><summary>Lo que sugirió la IA</summary><div class="ai-out" style="padding:8px 0 0;background:none">${md(c.ia.texto)}</div></details>`:""}
      ${c.example?"":(confirmId===c.id
-        ?`<div class="row"><button class="btn danger" data-del="${c.id}">Sí, borrar</button><button class="btn ghost" data-cancel>Cancelar</button></div>`
-        :`<div><button class="btn ghost" data-ask="${c.id}" style="padding:6px 12px;font-size:14px">Borrar</button></div>`)}
-   </div>`).join("") : `<p class="note" style="margin:0">Nada coincide con “${esc(q)}”.</p>`;
-  box.innerHTML=html;
+        ?`<div class="row"><button class="btn danger small" data-del="${c.id}">Sí, borrar</button><button class="btn ghost small" data-cancel>Cancelar</button></div>`
+        :`<div><button class="btn ghost small" data-ask="${c.id}">Borrar</button></div>`)}
+   </div>`).join("") : `<p class="note" style="margin:0">Nada coincide con “${esc($("#q").value)}”.</p>`;
+  $("#cases").innerHTML=html;fillImgs($("#cases"));
 }
 
-// ---------- Eventos ----------
+// ---------- Navegación y eventos ----------
+function go(v){document.querySelectorAll("nav button").forEach(b=>b.toggleAttribute("aria-current",b.dataset.v===v));
+  document.querySelectorAll("nav button[aria-current]").forEach(b=>b.setAttribute("aria-current","page"));
+  ["diag","cases","ref","set"].forEach(x=>$("#v-"+x).hidden=x!==v);if(v==="set")renderSettings();if(v==="diag")renderAI();window.scrollTo(0,0)}
+function resetCase(){
+  cur=null;vals={};curFotos=[];curAI=null;curCaseId=null;
+  ["f-model","f-owner","f-fault","f-part","f-notes"].forEach(i=>$("#"+i).value="");
+  renderSyms();renderSteps();renderThumbs();window.scrollTo(0,0);
+}
 document.addEventListener("click",e=>{
   const s=e.target.closest("[data-s]");
-  if(s){cur=SYMPTOMS.find(x=>x.id===s.dataset.s);vals={};renderSyms();renderSteps();$("#steps").scrollIntoView({behavior:"smooth",block:"start"});return}
+  if(s){if(cur?.id===s.dataset.s)return;cur=SYMPTOMS.find(x=>x.id===s.dataset.s);vals={};renderSyms();renderSteps();window.scrollTo({top:0});return}
+  if(e.target.closest("[data-change]")){cur=null;vals={};renderSyms();renderSteps();return}
   const yn=e.target.closest("[data-yn]");
   if(yn){const id=yn.dataset.yn;vals[id]=vals[id]===yn.dataset.v?undefined:yn.dataset.v;
     document.querySelectorAll(`[data-yn="${id}"]`).forEach(b=>b.setAttribute("aria-pressed",vals[id]===b.dataset.v));updateChips();return}
-  const nv=e.target.closest("nav button");
-  if(nv){document.querySelectorAll("nav button").forEach(b=>b.removeAttribute("aria-current"));nv.setAttribute("aria-current","page");
-    ["diag","cases","ref"].forEach(v=>$("#v-"+v).hidden=v!==nv.dataset.v);window.scrollTo(0,0);return}
-  const ask=e.target.closest("[data-ask]");if(ask){confirmId=ask.dataset.ask;renderCases();return}
+  const nv=e.target.closest("nav button");if(nv){go(nv.dataset.v);return}
+  const gt=e.target.closest("[data-goto]");if(gt){go(gt.dataset.goto);return}
+  if(e.target.closest("#b-ask")){ask();return}
+  const rm=e.target.closest("[data-rmfoto]");if(rm){const id=rm.dataset.rmfoto;curFotos=curFotos.filter(x=>x!==id);
+    if(!cases.some(c=>(c.fotos||[]).includes(id)))fotoDel(id).catch(()=>{});renderThumbs();return}
+  const im=e.target.closest("img[data-foto]");if(im&&im.src){$("#viewer-img").src=im.src;$("#viewer").hidden=false;return}
+  if(e.target.closest("#viewer")){$("#viewer").hidden=true;return}
+  const askd=e.target.closest("[data-ask]");if(askd){confirmId=askd.dataset.ask;renderCases();return}
   if(e.target.closest("[data-cancel]")){confirmId=null;renderCases();return}
   const del=e.target.closest("[data-del]");if(del){confirmId=null;delCase(del.dataset.del);toast("Caso borrado");return}
 });
 document.addEventListener("input",e=>{
+  if(e.target.id==="f-model"){renderSimilar();return}
   const id=e.target.dataset?.m; if(!id)return;
   const raw=e.target.value.replace(",",".").trim();
   const n=parseFloat(raw); vals[id]=raw===""||isNaN(n)?undefined:n;
   if(id==="avdd"&&cur){renderSteps();const el=document.getElementById("m-avdd");el.focus();el.setSelectionRange(el.value.length,el.value.length);return}
   updateChips();
 });
+$("#foto-in").addEventListener("change",e=>{const f=[...e.target.files];e.target.value="";if(f.length)addFotos(f)});
 $("#q").addEventListener("input",renderCases);
-$("#b-save").addEventListener("click",async()=>{
-  const d=new Date();const c={
-    id:"c"+d.getTime().toString(36)+Math.random().toString(36).slice(2,6),
-    fecha:d.toISOString().slice(0,10),modelo:$("#f-model").value.trim(),dueno:$("#f-owner").value.trim(),
-    sintoma:cur.title,falla:$("#f-fault").value.trim(),repuesto:$("#f-part").value.trim(),notas:$("#f-notes").value.trim(),med:measSummary()};
-  addCase(c);toast("Caso guardado");
+$("#b-save").addEventListener("click",()=>{
+  if(!cur)return;
+  const d=new Date();
+  curCaseId=curCaseId||("c"+d.getTime().toString(36)+Math.random().toString(36).slice(2,6));
+  const prev=cases.find(x=>x.id===curCaseId);
+  upsertCase({id:curCaseId,fecha:prev?.fecha||d.toISOString().slice(0,10),modelo:$("#f-model").value.trim(),dueno:$("#f-owner").value.trim(),
+    sintoma:cur.title,falla:$("#f-fault").value.trim(),repuesto:$("#f-part").value.trim(),notas:$("#f-notes").value.trim(),
+    med:measSummary(),fotos:[...curFotos],ia:curAI||undefined});
+  $("#b-save").textContent="Guardar cambios";toast(prev?"Caso actualizado":"Caso guardado");
 });
-$("#b-reset").addEventListener("click",()=>{
-  cur=null;vals={};["f-model","f-owner","f-fault","f-part","f-notes"].forEach(i=>$("#"+i).value="");
-  renderSyms();renderSteps();$("#result").hidden=true;$("#save").hidden=true;window.scrollTo(0,0);
-});
-
-{const g={};REF.forEach(r=>(g[r[0]]=g[r[0]]||[]).push(r));
-$("#ref").innerHTML=Object.keys(g).map(k=>`<div><h3>${k}</h3><dl>${g[k].map(r=>`<div class="r"><dt>${r[1]}</dt><dd>${r[2].replace(/ (V\b|DC)/g,"\u00a0$1")}</dd></div>`).join("")}</dl></div>`).join("");}
+$("#b-reset").addEventListener("click",()=>{resetCase();$("#b-save").textContent="Guardar caso"});
+$("#s-prov").addEventListener("change",e=>{cfg.prov=e.target.value;saveCfg();$("#s-model").innerHTML="";renderSettings();renderAI()});
+$("#s-key").addEventListener("change",e=>{const k=e.target.value.trim();if(k!==(cfg.keys[cfg.prov]||"")){cfg.keys[cfg.prov]=k;delete cfg.models[cfg.prov];saveCfg();renderSettings();renderAI()}});
+$("#s-model").addEventListener("change",e=>{cfg.models[cfg.prov]=e.target.value;saveCfg()});
+$("#b-test").addEventListener("click",testKey);
 $("#b-exp").addEventListener("click",exportCases);
 $("#imp").addEventListener("change",e=>{if(e.target.files[0])importCases(e.target.files[0]);e.target.value=""});
-renderSyms();initStore();
+
+{const g={};REF.forEach(r=>(g[r[0]]=g[r[0]]||[]).push(r));
+$("#ref").innerHTML=Object.keys(g).map(k=>`<div><h3>${k}</h3><dl>${g[k].map(r=>`<div class="r"><dt>${r[1]}</dt><dd>${r[2].replace(/ (V\b|DC|Ω)/g," $1")}</dd></div>`).join("")}</dl></div>`).join("");}
+renderSyms();renderThumbs();initStore();
 if("serviceWorker" in navigator){
   const hadSW=!!navigator.serviceWorker.controller;let reloaded=false;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{
@@ -410,5 +789,4 @@ if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js").then(r=>r.update()).catch(()=>{});
 }
 </script>
-
 </body></html>
