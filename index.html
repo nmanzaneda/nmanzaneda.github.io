@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f5f8f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Banco de TV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: una columna tipo "planilla de banco", pestañas fijas abajo como app de Android */
+html{padding-top:env(safe-area-inset-top,0px)}
+:root{
+  --bg:#eef1f3; --panel:#ffffff; --ink:#18232c; --muted:#5d6b77; --line:#d3dae0;
+  --accent:#0f5f8f; --accent-ink:#ffffff;
+  --ok:#1f7a4a; --ok-bg:#e3f2ea; --warn:#a15c00; --warn-bg:#fdf0dc; --bad:#b3261e; --bad-bg:#fbe5e3;
+  --sans:"IBM Plex Sans Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Roboto Mono",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11171c; --panel:#1a2229; --ink:#e4eaef; --muted:#93a1ad; --line:#2c3842;
+  --accent:#5fb0e3; --accent-ink:#0b1a24;
+  --ok:#6fd39c; --ok-bg:#16301f; --warn:#f0b35c; --warn-bg:#33260f; --bad:#ff8a80; --bad-bg:#3a1a18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11171c; --panel:#1a2229; --ink:#e4eaef; --muted:#93a1ad; --line:#2c3842;
+  --accent:#5fb0e3; --accent-ink:#0b1a24;
+  --ok:#6fd39c; --ok-bg:#16301f; --warn:#f0b35c; --warn-bg:#33260f; --bad:#ff8a80; --bad-bg:#3a1a18; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{padding-block:18px 4px;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-size:26px;margin:0;font-weight:700;letter-spacing:.01em}
+h1 small{display:block;font-size:13px;font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+h2{font-size:19px;margin:0;text-wrap:balance}
+.store{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.warnbox{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 12px;font-size:14px}
+.sym{display:grid;gap:8px}
+.sym button{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.sym button b{font-size:17px}
+.sym button span{color:var(--muted);font-size:14px}
+.sym button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.sym button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.step{border-top:1px solid var(--line);padding-top:12px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.step:first-of-type{border-top:0;padding-top:0}
+.step .where{grid-column:1/-1;color:var(--muted);font-size:14px}
+.step .name{font-weight:600;min-width:0}
+.step .range{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.inrow{display:flex;align-items:center;gap:6px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%}
+.inrow input{width:108px;font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.inrow .u{font-family:var(--mono);color:var(--muted);width:24px}
+.yn{display:flex;gap:6px}
+.yn button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.yn button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip{grid-column:1/-1;font-size:14px;border-radius:6px;padding:6px 10px}
+.chip.ok{background:var(--ok-bg);color:var(--ok)} .chip.bad{background:var(--bad-bg);color:var(--bad)} .chip.warn{background:var(--warn-bg);color:var(--warn)}
+.result ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn.danger{background:var(--bad);color:var(--panel)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.form{display:grid;gap:10px}
+.form label{display:grid;gap:4px;font-size:14px;color:var(--muted)}
+.case{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:4px}
+.case:first-child{border-top:0;padding-top:0}
+.case .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.case .model{font-weight:700;font-size:17px}
+.case .date{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.case .meas{font-family:var(--mono);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.tag{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--warn)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.v{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);display:flex;
+  padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));justify-content:center;gap:4px}
+nav button{font:inherit;font-weight:600;flex:1;max-width:200px;border:0;background:transparent;color:var(--muted);padding:10px 4px;border-radius:8px;cursor:pointer}
+nav button[aria-current="page"]{color:var(--accent);background:var(--bg)}
+.calc{grid-column:1/-1;font-family:var(--mono);font-size:13px}
+.note{font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600}
+@media (prefers-reduced-motion:no-preference){.sym button,.btn{transition:transform .1s}.btn:active{transform:scale(.98)}}
+</style>
+</head><body>
+
+<div class="wrap">
+  <header>
+    <h1><small>Asistente de reparación</small>Banco de TV</h1>
+    <span class="store" id="store">guardado en este teléfono</span>
+  </header>
+
+  <!-- DIAGNÓSTICO -->
+  <section id="v-diag" class="wrap">
+    <div class="warnbox"><b>Ojo:</b> en el primario hay 310 a 400 V DC. Descargá el capacitor principal antes de tocar. Los rangos son orientativos; si tenés el esquema del modelo, manda el esquema.</div>
+    <div class="label">1 · ¿Qué hace la TV?</div>
+    <div class="sym" id="syms"></div>
+    <div id="steps" class="panel" hidden></div>
+    <div id="result" class="panel result" hidden></div>
+    <div id="save" class="panel" hidden>
+      <h2>Guardar el caso</h2>
+      <div class="form">
+        <label>Modelo / chasis<input id="f-model" placeholder="Ej: Samsung UN43TU7000"></label>
+        <label>Dueño (opcional)<input id="f-owner" placeholder="Ej: Rubén, el vecino"></label>
+        <label>Qué era al final<input id="f-fault" placeholder="Ej: 2 LEDs abiertos en tira B"></label>
+        <label>Qué se cambió<input id="f-part" placeholder="Ej: juego de tiras completo"></label>
+        <label>Notas<textarea id="f-notes" rows="2" placeholder="Precio, dónde se compró el repuesto…"></textarea></label>
+        <div class="row"><button class="btn" id="b-save">Guardar caso</button><button class="btn ghost" id="b-reset">Empezar otra TV</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CASOS -->
+  <section id="v-cases" class="wrap" hidden>
+    <input id="q" type="search" placeholder="Buscar por modelo, falla, repuesto…" aria-label="Buscar casos">
+    <div class="panel" id="cases"></div>
+    <div class="panel">
+      <h2>Respaldo</h2>
+      <p class="note" style="margin:0">Los casos viven sólo en este teléfono. Cada tanto bajá un respaldo y guardalo en Drive o mandátelo por WhatsApp. Si cambiás de teléfono, lo cargás acá.</p>
+      <div class="row"><button class="btn ghost" id="b-exp">Bajar respaldo</button><label class="btn ghost" for="imp" style="display:inline-block">Cargar respaldo</label><input id="imp" type="file" accept=".json,application/json" hidden></div>
+    </div>
+  </section>
+
+  <!-- VALORES -->
+  <section id="v-ref" class="wrap" hidden>
+    <div class="panel"><h2>Valores típicos de TV LED</h2>
+      <div class="tbl"><table id="ref"></table></div>
+      <p class="note">Valores típicos con red de 220 V. Cada fabricante varía; usalos como punto de partida.</p>
+    </div>
+  </section>
+</div>
+
+<nav>
+  <button data-v="diag" aria-current="page">Diagnóstico</button>
+  <button data-v="cases">Casos</button>
+  <button data-v="ref">Valores</button>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ---------- Datos de diagnóstico ----------
+// step: {id,name,where,type:'num'|'yn',min,max,unit,low,high,zero,yes,no}
+const SYMPTOMS=[
+ {id:"noenc",title:"No enciende",sub:"LED de standby apagado, no hace nada",steps:[
+  {id:"ac",name:"Tensión de red en la entrada",where:"Bornes del conector de 220 V de la fuente",type:"num",min:198,max:242,unit:"V~",
+   low:"Red baja o cable/ficha en mal estado.",zero:"No llega red: cable, ficha o tomacorriente."},
+  {id:"fus",name:"¿El fusible de entrada está abierto?",where:"Fusible junto al conector de 220 V",type:"yn",
+   yes:"Fusible abierto: buscar corto antes de cambiarlo (MOSFET del PFC o de la fuente, puente rectificador, varistor). No pongas uno nuevo sin medir."},
+  {id:"bulk",name:"DC en el capacitor principal",where:"Capacitor grande del primario (después del puente)",type:"num",min:280,max:340,unit:"V",
+   zero:"No hay DC: puente rectificador, NTC o resistencia de arranque abiertos, o fusible.",low:"DC bajo: capacitor principal agotado o puente con un diodo abierto."},
+  {id:"sb",name:"Standby 5 V",where:"Conector fuente → main, pin 5V STB",type:"num",min:4.8,max:5.3,unit:"V",
+   zero:"Fuente de standby muerta: integrado PWM de standby, optoacoplador, capacitores del secundario.",low:"Standby bajo: capacitores secos en el secundario o algo en la main que carga de más (desconectá la main y volvé a medir).",high:"Standby alto: falla la regulación (TL431 / optoacoplador)."}
+ ],ok:"La fuente de standby está bien. Revisá el botón/receptor IR (teclado) y la main: regulador de 3,3 V standby y cristal."},
+
+ {id:"sbnoarr",title:"Prende el LED pero no arranca",sub:"Queda en standby, hace clic o no responde",steps:[
+  {id:"sb",name:"Standby 5 V",where:"Conector fuente → main",type:"num",min:4.8,max:5.3,unit:"V",
+   low:"Standby bajo: el micro de la main no arranca bien. Revisar capacitores del secundario standby.",zero:"No hay standby: ver síntoma \"No enciende\"."},
+  {id:"pson",name:"Señal de encendido (PS-ON / P-ON)",where:"Mismo conector, al pulsar encender",type:"num",min:2.5,max:5.3,unit:"V",
+   zero:"La main no manda la orden de encendido: problema en la main (firmware, cristal, regulador 3,3 V standby) o en el teclado/IR."},
+  {id:"pfc",name:"PFC con la TV encendida",where:"Capacitor principal, ya con PS-ON activo",type:"num",min:370,max:410,unit:"V",
+   low:"El PFC no arranca (queda en ~310 V): integrado PFC, su alimentación (Vcc ~15 V) o el MOSFET del PFC.",high:"PFC alto: falla de realimentación del PFC, riesgo para el capacitor. Apagá ya."},
+  {id:"v12",name:"Salida principal 12 V (si tiene)",where:"Conector fuente → main. Dejá vacío si no aplica",type:"num",min:11.4,max:12.8,unit:"V",optional:true,
+   zero:"La principal no arranca: PWM principal, o protección por corto en la carga (desconectá backlight/main).",low:"12 V bajo: capacitores de salida secos o sobrecarga."},
+  {id:"v24",name:"Salida principal 24 V (si tiene)",where:"Conector fuente → driver / main. Dejá vacío si no aplica",type:"num",min:22.8,max:25.2,unit:"V",optional:true,
+   zero:"No hay 24 V: PWM/LLC principal o protección. Probá desconectando el driver de backlight.",low:"24 V bajo: capacitores de salida o sobrecarga en el driver."},
+  {id:"v33",name:"3,3 V de la main",where:"Salida del regulador de 3,3 V en la main",type:"num",min:3.2,max:3.4,unit:"V",
+   zero:"Regulador de 3,3 V en corto o abierto. Medir resistencia a masa de la línea.",low:"3,3 V caído: regulador o algo en corto en la main."}
+ ],ok:"La fuente entrega todo. La falla probable es la main: firmware/eMMC corrupta, flash SPI, o el procesador. Probá actualizar o regrabar firmware."},
+
+ {id:"sinimg",title:"Sonido sí, imagen no",sub:"Pantalla negra pero se escucha",steps:[
+  {id:"lint",name:"¿Con una linterna pegada a la pantalla se ve la imagen?",where:"Pantalla con contenido (menú o un canal)",type:"yn",
+   yes:"Se ve la imagen: la falla es de backlight (tiras LED o driver). Seguí con los pasos de abajo.",
+   no:"No se ve nada: la falla está en T-con, main o panel. Pasá al síntoma \"Imagen con fallas\" y medí la T-con."},
+  {id:"blon",name:"Señal BL_ON (encendido de backlight)",where:"Conector main → driver / fuente",type:"num",min:2.5,max:5.3,unit:"V",
+   zero:"La main no habilita el backlight. Puede ser la main o que la main detectó una falla y lo apaga."},
+  {id:"dim",name:"Señal de dimming / PWM",where:"Mismo conector, pin DIM o PWM",type:"num",min:0.5,max:5.3,unit:"V",
+   zero:"Sin dimming: el driver queda apagado. Revisar main o la línea DIM."},
+  {id:"vled",name:"Tensión de salida hacia las tiras",where:"Conector del driver a las tiras (LED+ a LED−)",type:"num",min:20,max:250,unit:"V",calc:true,
+   zero:"El driver no saca tensión: driver/boost dañado, o entra en protección enseguida (medí en el primer segundo).",high:"Tensión muy alta y sin luz: tira abierta (algún LED cortado). El driver sube buscando cerrar el circuito."},
+  {id:"tiras",name:"¿Algún LED no prende con el tester?",where:"Probar cada LED o tira con tester de backlight",type:"yn",
+   yes:"LED abierto. Conviene cambiar el juego de tiras completo: los demás están igual de gastados."}
+ ],ok:"Driver y tiras parecen bien. Revisá conectores de tiras (sulfatados o flojos) y el pin de protección del driver."},
+
+ {id:"tcon",title:"Imagen con fallas",sub:"Rayas, colores invertidos, negativo, imagen fantasma",steps:[
+  {id:"tin",name:"Entrada de la T-con (12 V o 5 V)",where:"Fusible de entrada de la T-con",type:"num",min:4.8,max:12.6,unit:"V",
+   zero:"No llega alimentación: fusible de la T-con abierto (suele ser por corto en la T-con o el panel) o flex dañado."},
+  {id:"vdd",name:"VDD lógica 3,3 V",where:"Salida del regulador / PMIC de la T-con",type:"num",min:3.2,max:3.4,unit:"V",
+   zero:"Sin 3,3 V en T-con: PMIC dañado o corto.",low:"VDD bajo: PMIC o carga en corto."},
+  {id:"avdd",name:"AVDD / VAA",where:"Capacitor de salida AVDD del PMIC",type:"num",min:14,max:18.5,unit:"V",
+   zero:"Sin AVDD: bobina/diodo del boost o PMIC. Imagen blanca o negra.",low:"AVDD bajo: capacitores o PMIC. Imagen lavada."},
+  {id:"vgh",name:"VGH",where:"Salida VGH del PMIC",type:"num",min:22,max:35,unit:"V",
+   zero:"Sin VGH: diodos de la bomba de carga o PMIC. Suele dar pantalla blanca/gris.",low:"VGH bajo: bomba de carga débil, imagen con rayas o desvanecida."},
+  {id:"vgl",name:"VGL (es negativa)",where:"Salida VGL del PMIC",type:"num",min:-10,max:-4,unit:"V",
+   high:"VGL ausente o cerca de 0: diodos de la bomba negativa o PMIC.",low:"VGL demasiado negativa: falla del PMIC."},
+  {id:"vcom",name:"VCOM",where:"Salida VCOM (cerca del buffer)",type:"num",unit:"V",dep:"avdd",
+   low:"VCOM fuera de lugar: imagen con parpadeo o colores raros. Revisar buffer VCOM / gamma.",high:"VCOM fuera de lugar: imagen con parpadeo o colores raros. Revisar buffer VCOM / gamma."}
+ ],ok:"La T-con tiene sus tensiones bien. Probá con otro flex LVDS/V-by-One, resetear o regrabar la EEPROM de la T-con, o la falla está en el panel (COF/barras)."},
+
+ {id:"reinicia",title:"Se reinicia o se apaga sola",sub:"Loop de logo, se corta al rato",steps:[
+  {id:"sb",name:"Standby 5 V bajo carga",where:"Con la TV encendida",type:"num",min:4.8,max:5.3,unit:"V",low:"El standby cae con carga: capacitores secos en el secundario standby."},
+  {id:"v12",name:"12 V con la TV encendida",where:"Conector fuente → main. Vacío si no aplica",type:"num",min:11.4,max:12.8,unit:"V",optional:true,low:"12 V cae: capacitores de salida o sobrecarga; la main se resetea."},
+  {id:"v33",name:"3,3 V de la main",where:"Regulador 3,3 V",type:"num",min:3.2,max:3.4,unit:"V",low:"3,3 V inestable: regulador o capacitores cerca del procesador."},
+  {id:"v18",name:"1,8 V de la main (DDR)",where:"Regulador de la memoria",type:"num",min:1.7,max:1.9,unit:"V",optional:true,low:"1,8 V bajo: regulador de la DDR."},
+  {id:"vcore",name:"Core del procesador",where:"Bobina del regulador de núcleo",type:"num",min:0.95,max:1.25,unit:"V",optional:true,low:"Core bajo: regulador buck del núcleo o procesador con consumo excesivo.",zero:"Sin core: regulador del núcleo o corto en el procesador."},
+  {id:"cal",name:"¿Pasa sólo en caliente?",where:"Después de un rato prendida",type:"yn",yes:"Si falla en caliente: soldaduras frías o capacitores. Probá con aire caliente o spray frío para ubicarlo."}
+ ],ok:"Las tensiones están bien. Lo más probable es firmware/eMMC corrupta: reset de fábrica, actualizar por USB o regrabar la eMMC."}
+];
+
+const REF=[
+ ["Fuente","Red rectificada (capacitor principal)","~310 V DC"],
+ ["Fuente","PFC funcionando","380–400 V DC"],
+ ["Fuente","Standby","5 V (a veces 3,3 V)"],
+ ["Fuente","Principal","12 V, 18 V o 24 V"],
+ ["Fuente","Vcc del PWM","12–18 V"],
+ ["Backlight","BL_ON / DIM","3,3 o 5 V"],
+ ["Backlight","Por LED","~3 V (simple) · ~6 V (doble chip)"],
+ ["Backlight","Salida driver","30–200 V según tiras"],
+ ["T-con","VDD","3,3 V"],
+ ["T-con","AVDD / VAA","14–18 V"],
+ ["T-con","VGH","22–35 V"],
+ ["T-con","VGL","−4 a −10 V"],
+ ["T-con","VCOM","≈ la mitad de AVDD"],
+ ["Main","Lógica","3,3 V · 1,8 V (DDR) · 1,0–1,2 V (core)"]
+];
+
+const EXAMPLES=[
+ {id:"ej1",fecha:"2026-10-12",modelo:"LG 43LJ5500",sintoma:"Sonido sí, imagen no",falla:"LED abierto en tira 2",repuesto:"Juego de tiras completo",notas:"Driver sacaba 180 V sin luz",dueno:"",med:"Linterna: sí · Salida tiras: 182 V",example:true},
+ {id:"ej2",fecha:"2026-09-03",modelo:"Philips 32PHG5813",sintoma:"No enciende",falla:"Capacitor del secundario standby seco",repuesto:"Capacitor 1000 µF 16 V",notas:"",dueno:"",med:"Standby 5 V: 2,1 V",example:true}
+];
+
+// ---------- Estado ----------
+let cur=null, vals={}, cases=[], db=null, toastT;
+const $=s=>document.querySelector(s);
+const fmt=n=>String(n).replace(".",",");
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2200)}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+// ---------- Almacenamiento: base del artefacto, o el teléfono si no hay ----------
+const LS="bancotv.casos";
+function lsLoad(){try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return[]}}
+function lsSave(){try{localStorage.setItem(LS,JSON.stringify(cases))}catch(e){}}
+function initStore(){cases=lsLoad();renderCases()}
+function addCase(c){cases.unshift(c);lsSave();renderCases()}
+function delCase(id){cases=cases.filter(c=>c.id!==id);lsSave();renderCases()}
+function exportCases(){
+  const blob=new Blob([JSON.stringify({app:"banco-tv",version:1,casos:cases},null,1)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="banco-tv-respaldo-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();
+  toast(cases.length+" casos exportados");
+}
+function importCases(file){
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);const list=Array.isArray(d)?d:d.casos;
+    if(!Array.isArray(list))throw 0;
+    const ids=new Set(cases.map(c=>c.id));let n=0;
+    list.forEach(c=>{if(c&&c.id&&!ids.has(c.id)){cases.push(c);n++}});
+    cases.sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));lsSave();renderCases();toast(n+" casos cargados");
+  }catch(e){toast("Ese archivo no es un respaldo de Banco de TV")}};
+  r.readAsText(file);
+}
+
+// ---------- Diagnóstico ----------
+function renderSyms(){
+  $("#syms").innerHTML=SYMPTOMS.map(s=>`<button data-s="${s.id}" aria-pressed="${cur?.id===s.id}"><b>${s.title}</b><span>${s.sub}</span></button>`).join("");
+}
+function rangeOf(st){
+  if(st.dep==="avdd"){const a=vals.avdd;if(typeof a!=="number")return null;return[a/2-1.5,a/2+1.5]}
+  if(st.min==null)return null;return[st.min,st.max];
+}
+function evalStep(st){
+  const v=vals[st.id];
+  if(v===undefined||v==="")return null;
+  if(st.type==="yn") return v==="si"?(st.yes?{k:"bad",m:st.yes}:{k:"ok",m:"OK"}):(st.no?{k:"bad",m:st.no}:{k:"ok",m:"OK"});
+  const r=rangeOf(st); if(!r)return {k:"warn",m:"Cargá primero AVDD para calcular el rango."};
+  const [lo,hi]=r;
+  if(st.calc && vals.nled){
+    const per=v/vals.nled;
+    const okS=per>=2.7&&per<=3.5, okD=per>=5.4&&per<=7;
+    if(!okS&&!okD) return {k:"bad",m:`Da ${fmt(per.toFixed(2))} V por LED: fuera de lo normal (≈3 V simple, ≈6 V doble chip). `+(per>3.5&&per<5.4?"Probable LED en corto o tira mixta.":"Revisá tiras.")};
+  }
+  if(Math.abs(v)<Math.abs(lo)*0.1 && lo>0) return {k:"bad",m:st.zero||st.low||"Ausente."};
+  if(lo<0 && v>-1) return {k:"bad",m:st.high||"Ausente."};
+  if(v<lo) return {k:"bad",m:st.low||st.zero||"Por debajo de lo normal."};
+  if(v>hi) return {k:"bad",m:st.high||"Por encima de lo normal."};
+  return {k:"ok",m:"Dentro de lo normal."};
+}
+function renderSteps(){
+  if(!cur){$("#steps").hidden=true;return}
+  const box=$("#steps");box.hidden=false;
+  box.innerHTML=`<div class="label">2 · Medí y cargá</div><h2>${cur.title}</h2>`+cur.steps.map(st=>{
+    const r=rangeOf(st);
+    let rtxt= st.type==="yn"?"": st.dep==="avdd"?(r?`${fmt(r[0].toFixed(1))} a ${fmt(r[1].toFixed(1))} ${st.unit}`:"≈ AVDD ÷ 2"):`${fmt(st.min)} a ${fmt(st.max)} ${st.unit}`;
+    const input= st.type==="yn"
+      ? `<div class="yn"><button data-yn="${st.id}" data-v="si" aria-pressed="${vals[st.id]==="si"}">Sí</button><button data-yn="${st.id}" data-v="no" aria-pressed="${vals[st.id]==="no"}">No</button></div>`
+      : `<div class="inrow"><input id="m-${st.id}" inputmode="decimal" data-m="${st.id}" value="${vals[st.id]!==undefined?fmt(vals[st.id]):""}" aria-label="${esc(st.name)}"><span class="u">${st.unit}</span></div>`;
+    const calc= st.calc?`<div class="calc"><label>LEDs en serie en total: <input id="m-nled" data-m="nled" inputmode="numeric" style="width:70px;display:inline-block;padding:6px" value="${vals.nled??""}"></label> <span id="perled"></span></div>`:"";
+    return `<div class="step"><div class="name">${st.name}${st.optional?' <span class="range">(opcional)</span>':""}<div class="range">${rtxt}</div></div>${input}<div class="where">${st.where}</div>${calc}<div class="chip" id="c-${st.id}" hidden></div></div>`;
+  }).join("");
+  updateChips();
+}
+function updateChips(){
+  if(!cur)return;
+  const res=[];let filled=0;
+  cur.steps.forEach(st=>{
+    const e=evalStep(st);const c=document.getElementById("c-"+st.id);
+    if(!c)return;
+    if(!e){c.hidden=true;return}
+    filled++;c.hidden=false;c.className="chip "+e.k;c.textContent=e.m;
+    if(e.k==="bad")res.push(e.m);
+  });
+  const pl=document.getElementById("perled");
+  if(pl){pl.textContent=(vals.vled&&vals.nled)?`→ ${fmt((vals.vled/vals.nled).toFixed(2))} V por LED`:""}
+  const r=$("#result");
+  if(!filled){r.hidden=true;$("#save").hidden=true;return}
+  r.hidden=false;$("#save").hidden=false;
+  r.innerHTML=`<div class="label">3 · Qué revisar</div>`+(res.length
+    ?`<h2>${res.length===1?"Una medición fuera de lugar":res.length+" mediciones fuera de lugar"}</h2><ol>${res.map(m=>`<li>${m}</li>`).join("")}</ol>`
+    :`<h2>Todo lo medido está bien</h2><p style="margin:0">${cur.ok}</p>`);
+}
+function measSummary(){
+  if(!cur)return"";
+  return cur.steps.filter(s=>vals[s.id]!==undefined&&vals[s.id]!=="").map(s=>{
+    const short=s.name.split(" (")[0].replace("¿","").replace("?","");
+    return s.type==="yn"?`${short}: ${vals[s.id]==="si"?"sí":"no"}`:`${short}: ${fmt(vals[s.id])} ${s.unit}`}).join(" · ");
+}
+
+// ---------- Casos ----------
+let confirmId=null;
+function renderCases(){
+  const q=($("#q").value||"").toLowerCase();
+  const list=cases.length?cases:EXAMPLES;
+  const f=list.filter(c=>!q||[c.modelo,c.sintoma,c.falla,c.repuesto,c.notas,c.dueno,c.med].join(" ").toLowerCase().includes(q));
+  const box=$("#cases");
+  let html=cases.length?"":`<p class="note" style="margin:0">Todavía no hay casos guardados. Estos dos son de ejemplo, para que veas cómo queda; desaparecen cuando guardes el primero.</p>`;
+  html+= f.length? f.map(c=>`<div class="case">
+     <div class="top"><span class="model">${esc(c.modelo||"Sin modelo")}</span><span class="date">${esc(c.fecha)}</span></div>
+     ${c.example?'<span class="tag">Ejemplo</span>':""}
+     <div><b>${esc(c.sintoma)}</b>${c.dueno?" · "+esc(c.dueno):""}</div>
+     ${c.falla?`<div>Era: ${esc(c.falla)}</div>`:""}
+     ${c.repuesto?`<div>Se cambió: ${esc(c.repuesto)}</div>`:""}
+     ${c.notas?`<div class="note">${esc(c.notas)}</div>`:""}
+     ${c.med?`<div class="meas">${esc(c.med)}</div>`:""}
+     ${c.example?"":(confirmId===c.id
+        ?`<div class="row"><button class="btn danger" data-del="${c.id}">Sí, borrar</button><button class="btn ghost" data-cancel>Cancelar</button></div>`
+        :`<div><button class="btn ghost" data-ask="${c.id}" style="padding:6px 12px;font-size:14px">Borrar</button></div>`)}
+   </div>`).join("") : `<p class="note" style="margin:0">Nada coincide con “${esc(q)}”.</p>`;
+  box.innerHTML=html;
+}
+
+// ---------- Eventos ----------
+document.addEventListener("click",e=>{
+  const s=e.target.closest("[data-s]");
+  if(s){cur=SYMPTOMS.find(x=>x.id===s.dataset.s);vals={};renderSyms();renderSteps();$("#steps").scrollIntoView({behavior:"smooth",block:"start"});return}
+  const yn=e.target.closest("[data-yn]");
+  if(yn){const id=yn.dataset.yn;vals[id]=vals[id]===yn.dataset.v?undefined:yn.dataset.v;
+    document.querySelectorAll(`[data-yn="${id}"]`).forEach(b=>b.setAttribute("aria-pressed",vals[id]===b.dataset.v));updateChips();return}
+  const nv=e.target.closest("nav button");
+  if(nv){document.querySelectorAll("nav button").forEach(b=>b.removeAttribute("aria-current"));nv.setAttribute("aria-current","page");
+    ["diag","cases","ref"].forEach(v=>$("#v-"+v).hidden=v!==nv.dataset.v);window.scrollTo(0,0);return}
+  const ask=e.target.closest("[data-ask]");if(ask){confirmId=ask.dataset.ask;renderCases();return}
+  if(e.target.closest("[data-cancel]")){confirmId=null;renderCases();return}
+  const del=e.target.closest("[data-del]");if(del){confirmId=null;delCase(del.dataset.del);toast("Caso borrado");return}
+});
+document.addEventListener("input",e=>{
+  const id=e.target.dataset?.m; if(!id)return;
+  const raw=e.target.value.replace(",",".").trim();
+  const n=parseFloat(raw); vals[id]=raw===""||isNaN(n)?undefined:n;
+  if(id==="avdd"&&cur){renderSteps();const el=document.getElementById("m-avdd");el.focus();el.setSelectionRange(el.value.length,el.value.length);return}
+  updateChips();
+});
+$("#q").addEventListener("input",renderCases);
+$("#b-save").addEventListener("click",async()=>{
+  const d=new Date();const c={
+    id:"c"+d.getTime().toString(36)+Math.random().toString(36).slice(2,6),
+    fecha:d.toISOString().slice(0,10),modelo:$("#f-model").value.trim(),dueno:$("#f-owner").value.trim(),
+    sintoma:cur.title,falla:$("#f-fault").value.trim(),repuesto:$("#f-part").value.trim(),notas:$("#f-notes").value.trim(),med:measSummary()};
+  addCase(c);toast("Caso guardado");
+});
+$("#b-reset").addEventListener("click",()=>{
+  cur=null;vals={};["f-model","f-owner","f-fault","f-part","f-notes"].forEach(i=>$("#"+i).value="");
+  renderSyms();renderSteps();$("#result").hidden=true;$("#save").hidden=true;window.scrollTo(0,0);
+});
+
+$("#ref").innerHTML="<tr><th>Bloque</th><th>Punto</th><th>Valor</th></tr>"+REF.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="v">${r[2]}</td></tr>`).join("");
+$("#b-exp").addEventListener("click",exportCases);
+$("#imp").addEventListener("change",e=>{if(e.target.files[0])importCases(e.target.files[0]);e.target.value=""});
+renderSyms();initStore();
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+
+</body></html>
