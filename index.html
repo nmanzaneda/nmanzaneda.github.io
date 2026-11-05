@@ -550,7 +550,8 @@ function cmpVer(a,b){const x=verNum(a),y=verNum(b);for(let i=0;i<Math.max(x.leng
 
 async function apiErr(res){let m="";try{const j=await res.json();m=j.error?.message||j.error?.type||JSON.stringify(j).slice(0,200)}catch(e){}
   if(res.status===401||res.status===403||/api.?key|invalid.*key|permission/i.test(m))return new Error("La clave no es válida o no tiene permiso. Revisala en Ajustes.");
-  if(res.status===429)return new Error("Se terminó el cupo por ahora. Probá en un rato o mañana.");
+  if(res.status===503||res.status===500||res.status===529||/overload|high demand|unavailable/i.test(m)){const e=new Error("El servicio de IA está saturado en este momento. Probá en un rato.");e.retry=true;return e}
+  if(res.status===429){const e=new Error("Se terminó el cupo por ahora. Probá en un rato o mañana.");e.retry=true;return e}
   if(res.status===402||/credit|balance|billing|quota/i.test(m))return new Error("La cuenta no tiene saldo o cupo disponible.");
   return new Error("Error "+res.status+(m?": "+m:""));}
 
@@ -612,37 +613,63 @@ function buildPrompt(){
   return L.join("\n");
 }
 
-async function callAI(){
-  const prov=cfg.prov,key=cfg.keys[prov].trim();
-  let model=cfg.models[prov];
-  if(!model){try{const ids=await listModels(prov,key);model=ids[0]||PROV[prov].fallback}catch(e){if(/clave|saldo/.test(e.message))throw e;model=PROV[prov].fallback}
-    cfg.models[prov]=model;saveCfg()}
-  const text=buildPrompt();
-  const imgs=[];
-  for(const id of curFotos.slice(0,4)){const b=await fotoGet(id).catch(()=>null);if(b)imgs.push(await blobToB64(await shrink(b,1024,.8)))}
+function localStamp(){const d=new Date(),z=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`}
+async function fetchT(url,opt,ms=90000){const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms);
+  try{return await fetch(url,{...opt,signal:ac.signal})}
+  catch(e){if(e.name==="AbortError"){const x=new Error("La IA tardó demasiado en responder.");x.retry=true;throw x}throw e}
+  finally{clearTimeout(t)}}
+
+async function modelChain(prov,key){
+  let list=(cfg.lists||{})[prov];
+  if(!list||!list.length){try{list=await listModels(prov,key);cfg.lists=cfg.lists||{};cfg.lists[prov]=list.slice(0,8);saveCfg()}
+    catch(e){if(/clave|saldo/.test(e.message))throw e;list=[]}}
+  const first=cfg.models[prov]||list[0]||PROV[prov].fallback;
+  if(!cfg.models[prov]){cfg.models[prov]=first;saveCfg()}
+  return [first,...list.filter(m=>m!==first)].slice(0,4);
+}
+
+async function callModel(prov,key,model,text,imgs){
   let out="";
   if(prov==="gemini"){
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",
+    const r=await fetchT(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:"POST",
       headers:{"Content-Type":"application/json","x-goog-api-key":key},
       body:JSON.stringify({systemInstruction:{parts:[{text:SYS}]},contents:[{role:"user",parts:[{text},...imgs.map(d=>({inline_data:{mime_type:"image/jpeg",data:d}}))]}]})});
     if(!r.ok)throw await apiErr(r);const j=await r.json();
     out=(j.candidates?.[0]?.content?.parts||[]).filter(p=>!p.thought).map(p=>p.text||"").join("");
     if(!out&&j.promptFeedback?.blockReason)throw new Error("Gemini no quiso responder ("+j.promptFeedback.blockReason+").");
   }else if(prov==="openai"){
-    const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",
+    const r=await fetchT("https://api.openai.com/v1/chat/completions",{method:"POST",
       headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},
       body:JSON.stringify({model,messages:[{role:"system",content:SYS},{role:"user",content:[{type:"text",text},...imgs.map(d=>({type:"image_url",image_url:{url:"data:image/jpeg;base64,"+d}}))]}]})});
     if(!r.ok)throw await apiErr(r);const j=await r.json();
     out=j.choices?.[0]?.message?.content||"";
   }else{
-    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+    const r=await fetchT("https://api.anthropic.com/v1/messages",{method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({model,max_tokens:2000,system:SYS,messages:[{role:"user",content:[...imgs.map(d=>({type:"image",source:{type:"base64",media_type:"image/jpeg",data:d}})),{type:"text",text}]}]})});
     if(!r.ok)throw await apiErr(r);const j=await r.json();
     out=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
   }
-  if(!out.trim())throw new Error("La IA no devolvió respuesta. Probá de nuevo.");
-  return {texto:out.trim(),prov:PROV[prov].name,modelo:model,fecha:new Date().toISOString().slice(0,16).replace("T"," ")};
+  if(!out.trim()){const e=new Error("La IA no devolvió respuesta. Probá de nuevo.");e.retry=true;throw e}
+  return out.trim();
+}
+
+async function callAI(onStatus){
+  const prov=cfg.prov,key=cfg.keys[prov].trim();
+  const chain=await modelChain(prov,key);
+  const text=buildPrompt();
+  const imgs=[];
+  for(const id of curFotos.slice(0,4)){const b=await fotoGet(id).catch(()=>null);if(b)imgs.push(await blobToB64(await shrink(b,1024,.8)))}
+  let last;
+  for(let i=0;i<chain.length;i++){
+    const model=chain[i];
+    if(i>0)onStatus&&onStatus("Saturado, probando con "+model);
+    try{
+      const out=await callModel(prov,key,model,text,imgs);
+      return {texto:out,prov:PROV[prov].name,modelo:model,fecha:localStamp()};
+    }catch(e){last=e;if(!e.retry)throw e;await new Promise(r=>setTimeout(r,800))}
+  }
+  throw last;
 }
 
 function md(t){
@@ -666,13 +693,16 @@ function renderAI(){
     +`<div class="row"><button class="btn ai" id="b-ask">${curAI?"Preguntar de nuevo":"¿Qué puede ser?"}</button></div><div id="ai-err" class="err"></div>`;
 }
 async function ask(){
-  const btn=$("#b-ask");btn.disabled=true;btn.textContent="Pensando…";$("#ai-err").textContent="";
+  const btn=$("#b-ask");btn.disabled=true;$("#ai-err").textContent="";
+  let label="Pensando",t0=Date.now();
+  const tick=()=>{btn.textContent=`${label}… ${Math.round((Date.now()-t0)/1000)} s`};tick();const iv=setInterval(tick,1000);
   try{
     if(!navigator.onLine)throw new Error("Sin internet. La IA necesita conexión en el momento de consultar.");
-    curAI=await callAI();renderAI();
+    curAI=await callAI(m=>{label=m;tick()});clearInterval(iv);renderAI();
     if(curCaseId){const c=cases.find(x=>x.id===curCaseId);if(c){c.ia=curAI;upsertCase(c)}}
-  }catch(e){btn.disabled=false;btn.textContent=curAI?"Preguntar de nuevo":"¿Qué puede ser?";
-    $("#ai-err").textContent=e.message==="Failed to fetch"?"No se pudo conectar. Revisá internet y probá de nuevo.":e.message}
+  }catch(e){clearInterval(iv);btn.disabled=false;btn.textContent=curAI?"Preguntar de nuevo":"¿Qué puede ser?";
+    const msg=e.message==="Failed to fetch"?"No se pudo conectar. Revisá internet y probá de nuevo.":e.message;
+    $("#ai-err").innerHTML=esc(msg)+(e.retry||/clave|saldo/.test(msg)?` <div style="margin-top:8px"><button class="btn ghost small" data-goto="set">Cambiar modelo o clave en Ajustes</button></div>`:"")}
 }
 
 // ---------- Ajustes ----------
@@ -690,7 +720,7 @@ async function testKey(){
   try{
     const ids=await listModels(cfg.prov,key);
     if(!ids.length)throw new Error("La clave funciona pero no encontré modelos para usar.");
-    const prev=cfg.models[cfg.prov];cfg.models[cfg.prov]=ids.includes(prev)?prev:ids[0];saveCfg();
+    const prev=cfg.models[cfg.prov];cfg.models[cfg.prov]=ids.includes(prev)?prev:ids[0];cfg.lists=cfg.lists||{};cfg.lists[cfg.prov]=ids.slice(0,8);saveCfg();
     $("#s-model").innerHTML=ids.slice(0,25).map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join("");
     $("#s-model").value=cfg.models[cfg.prov];$("#s-model-w").hidden=false;
     $("#s-status").textContent="Clave correcta. Ya podés usar la IA desde Diagnóstico.";
@@ -764,14 +794,14 @@ $("#b-save").addEventListener("click",()=>{
   const d=new Date();
   curCaseId=curCaseId||("c"+d.getTime().toString(36)+Math.random().toString(36).slice(2,6));
   const prev=cases.find(x=>x.id===curCaseId);
-  upsertCase({id:curCaseId,fecha:prev?.fecha||d.toISOString().slice(0,10),modelo:$("#f-model").value.trim(),dueno:$("#f-owner").value.trim(),
+  upsertCase({id:curCaseId,fecha:prev?.fecha||localStamp().slice(0,10),modelo:$("#f-model").value.trim(),dueno:$("#f-owner").value.trim(),
     sintoma:cur.title,falla:$("#f-fault").value.trim(),repuesto:$("#f-part").value.trim(),notas:$("#f-notes").value.trim(),
     med:measSummary(),fotos:[...curFotos],ia:curAI||undefined});
   $("#b-save").textContent="Guardar cambios";toast(prev?"Caso actualizado":"Caso guardado");
 });
 $("#b-reset").addEventListener("click",()=>{resetCase();$("#b-save").textContent="Guardar caso"});
 $("#s-prov").addEventListener("change",e=>{cfg.prov=e.target.value;saveCfg();$("#s-model").innerHTML="";renderSettings();renderAI()});
-$("#s-key").addEventListener("change",e=>{const k=e.target.value.trim();if(k!==(cfg.keys[cfg.prov]||"")){cfg.keys[cfg.prov]=k;delete cfg.models[cfg.prov];saveCfg();renderSettings();renderAI()}});
+$("#s-key").addEventListener("change",e=>{const k=e.target.value.trim();if(k!==(cfg.keys[cfg.prov]||"")){cfg.keys[cfg.prov]=k;delete cfg.models[cfg.prov];if(cfg.lists)delete cfg.lists[cfg.prov];saveCfg();renderSettings();renderAI()}});
 $("#s-model").addEventListener("change",e=>{cfg.models[cfg.prov]=e.target.value;saveCfg()});
 $("#b-test").addEventListener("click",testKey);
 $("#b-exp").addEventListener("click",exportCases);
