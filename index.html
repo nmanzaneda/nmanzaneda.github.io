@@ -401,7 +401,14 @@ $("#ref").innerHTML=Object.keys(g).map(k=>`<div><h3>${k}</h3><dl>${g[k].map(r=>`
 $("#b-exp").addEventListener("click",exportCases);
 $("#imp").addEventListener("change",e=>{if(e.target.files[0])importCases(e.target.files[0]);e.target.value=""});
 renderSyms();initStore();
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+if("serviceWorker" in navigator){
+  const hadSW=!!navigator.serviceWorker.controller;let reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(!hadSW||reloaded)return;reloaded=true;
+    toast("Actualizando a la versión nueva…");setTimeout(()=>location.reload(),900);
+  });
+  navigator.serviceWorker.register("sw.js").then(r=>r.update()).catch(()=>{});
+}
 </script>
 
 </body></html>
